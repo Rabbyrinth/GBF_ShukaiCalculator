@@ -467,11 +467,11 @@ input[type="number"]:focus {
   transition: all 0.25s ease;
   letter-spacing: 0.5px;
 }
-.tab:hover {
+.tab:not(.active):hover {
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.35);
 }
-[data-theme="dark"] .tab:hover {
+[data-theme="dark"] .tab:not(.active):hover {
   background: rgba(255, 255, 255, 0.05);
 }
 .tab.active {
