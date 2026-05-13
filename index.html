@@ -536,79 +536,140 @@ input[type="number"]:focus {
   font-weight: 700;
 }
 
-/* Mock battle result display */
-.mock-result {
+/* Screenshot figure */
+.rp-figure {
   margin: 18px 0 8px;
-  padding: 18px 22px;
-  background: linear-gradient(135deg, #0d1b3d, #1a2b5a);
-  border: 1px solid rgba(212, 160, 23, 0.55);
+  padding: 0;
+}
+.rp-figure .rp-screenshot {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  height: auto;
   border-radius: 12px;
-  color: #f4e9c8;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+.rp-figure .rp-figure-fallback {
+  display: none;
+}
+.rp-figure.no-image .rp-screenshot {
+  display: none;
+}
+.rp-figure.no-image .rp-figure-fallback {
+  display: block;
+}
+.rp-figure-fallback-note {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 600;
+}
+
+/* Mock battle result display (game-UI style) */
+.mock-result {
+  margin: 18px auto 8px;
+  padding: 22px 24px 24px;
+  max-width: 420px;
+  background:
+    radial-gradient(ellipse at top, rgba(80, 100, 160, 0.35), transparent 60%),
+    linear-gradient(160deg, #0a1530 0%, #0d1c40 50%, #050d24 100%);
+  border-radius: 14px;
+  color: #ecdfb7;
   position: relative;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(212, 160, 23, 0.35),
+    inset 0 0 0 4px rgba(0, 0, 0, 0.3);
 }
 .mock-result .mock-title {
-  font-size: 0.75rem;
-  letter-spacing: 2px;
-  color: #ffe89c;
-  margin-bottom: 12px;
+  text-align: center;
+  font-size: 0.95rem;
   font-weight: 700;
+  color: #f5e8c0;
+  letter-spacing: 6px;
+  padding: 6px 0 10px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(212, 160, 23, 0.4);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 .mock-result .mock-row {
-  font-size: 0.98rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  margin: 6px 0;
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+  font-variant-numeric: tabular-nums;
 }
-.mock-result .mock-row .label-jp {
-  color: rgba(244, 233, 200, 0.85);
-  font-weight: 500;
+.mock-result .mock-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 5px 12px;
+  border-radius: 7px;
+  border: 1.5px solid #f0c54a;
+  color: #ffe89c;
+  background: linear-gradient(180deg, rgba(35, 50, 90, 0.7), rgba(15, 25, 55, 0.7));
+  box-shadow: inset 0 1px 0 rgba(255, 232, 156, 0.2);
+  white-space: nowrap;
+  min-width: 92px;
+  letter-spacing: 0.5px;
 }
 .mock-result .mock-row .num {
-  color: #f4e9c8;
+  font-size: 1.05rem;
   font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
-.mock-result .mock-row.bonus .label-jp {
-  color: rgba(255, 232, 156, 0.8);
-  font-size: 0.88rem;
-  padding-left: 14px;
-}
-.mock-result .mock-row.bonus .num {
-  color: #ffe89c;
+.mock-result .mock-row .bonus {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ff9a8a;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
 }
 .mock-result .mock-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 232, 156, 0.4), transparent);
-  margin: 12px 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 232, 156, 0.35), transparent);
+  margin: 14px 0 12px;
 }
 .mock-result .mock-total {
   display: flex;
-  justify-content: space-between;
   align-items: baseline;
-  font-size: 0.98rem;
+  gap: 16px;
+  padding: 8px 12px;
+  background: rgba(212, 160, 23, 0.12);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 232, 156, 0.25);
 }
 .mock-result .mock-total .label-jp {
   color: #ffe89c;
   font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 2px;
 }
 .mock-result .mock-total .num {
-  font-size: 1.4rem;
+  font-size: 1.55rem;
   font-weight: 900;
-  color: #ffe89c;
+  color: #fff5d0;
   font-variant-numeric: tabular-nums;
+  margin-left: auto;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
 }
 .mock-arrow-note {
-  margin: 6px 0 0;
-  font-size: 0.82rem;
+  margin: 10px 0 0;
+  font-size: 0.88rem;
   color: var(--text-sub);
   text-align: center;
   font-weight: 600;
+  line-height: 1.6;
 }
 .mock-arrow-note .gold-text {
   color: var(--accent-gold);
+  font-weight: 700;
 }
 
 .tip-box {
@@ -722,9 +783,9 @@ input[type="number"]:focus {
       </div>
 
       <div class="form-group">
-        <label for="curRank">現在ランク <span class="hint">(1〜425)</span></label>
+        <label for="curRank">現在ランク <span class="hint">(1〜424)</span></label>
         <div class="input-wrapper">
-          <input type="number" id="curRank" min="1" max="425" step="1" value="194">
+          <input type="number" id="curRank" min="1" max="424" step="1" value="194">
         </div>
       </div>
 
@@ -826,35 +887,41 @@ input[type="number"]:focus {
         現在ランクと目標ランク、1周あたりの獲得RP・所要時間・1日のプレイ時間を入力すると、
         必要な周回数・時間・<strong class="gold">何日かかるか</strong>を算出します。
       </p>
+      <p>
+        このツールは <strong class="gold">実際の値を使った単純な計算機</strong> なので、
+        古戦場期間やその他バフなどのシミュレーションには対応していないのが特徴です。
+      </p>
     </section>
 
     <section class="card">
       <div class="card-header">
         <span class="badge">★</span>
-        <h2>「1周あたりの獲得RP」の数え方<span class="step-suffix">IMPORTANT</span></h2>
+        <h2>「1周あたりの獲得RP」の入力の仕方</h2>
       </div>
       <p>
         戦闘終了時に表示される <strong class="gold">「+◯◯ポイント」と「ボーナス +◯◯」</strong> の
         <strong class="gold">すべての数字を足した値</strong> を入力してください。
       </p>
 
-      <div class="mock-result" aria-label="戦闘終了画面のイメージ">
-        <div class="mock-title">RANK POINT</div>
-        <div class="mock-row"><span class="label-jp">獲得ランクポイント</span><span class="num">+25,000</span></div>
-        <div class="mock-row bonus"><span class="label-jp">ボーナス</span><span class="num">+5,000</span></div>
-        <div class="mock-row bonus"><span class="label-jp">ボーナス</span><span class="num">+2,000</span></div>
-        <div class="mock-row bonus"><span class="label-jp">ボーナス</span><span class="num">+610</span></div>
-        <div class="mock-divider"></div>
-        <div class="mock-total"><span class="label-jp">合計</span><span class="num">32,610</span></div>
-      </div>
-      <p class="mock-arrow-note">↑ この <span class="gold-text">合計値（32,610）</span> を入力欄に入れる</p>
-
-      <div class="tip-box">
-        <strong>ポイント:</strong>
-        ボーナスは <strong>古戦場期間中の貢献度ボーナス</strong>・<strong>ジョブマスターレベル</strong>・
-        <strong>イベント特効ボーナス</strong> などで複数行に分かれて表示されますが、
-        最終的にRPバーが伸びた量＝そのすべての合計です。漏らさず足してください。
-      </div>
+      <figure class="rp-figure">
+        <img src="rp-screenshot.png" alt="獲得経験値画面（Rankポイントの数字とボーナスの合計を入力する）" class="rp-screenshot" onerror="this.parentElement.classList.add('no-image')">
+        <div class="rp-figure-fallback">
+          <div class="mock-result" aria-label="獲得経験値画面のイメージ">
+            <div class="mock-title">獲得経験値</div>
+            <div class="mock-row">
+              <span class="mock-chip">Rankポイント</span>
+              <span class="num">+19,230</span>
+              <span class="bonus">(ボーナス +115,380)</span>
+            </div>
+            <div class="mock-divider"></div>
+            <div class="mock-total">
+              <span class="label-jp">合計</span>
+              <span class="num">134,610</span>
+            </div>
+          </div>
+        </div>
+      </figure>
+      <p class="mock-arrow-note">↑ <span class="gold-text">Rankポイントの数字</span> と <span class="gold-text">（ボーナス）の数字</span> を足した合計を入力</p>
     </section>
 
     <section class="card">
@@ -864,16 +931,16 @@ input[type="number"]:focus {
       </div>
       <dl class="guide-list">
         <dt>現在ランク</dt>
-        <dd>あなたの現在のランク（プロフィール画面の「Rank ◯◯」の数字）。1〜425の範囲で入力。</dd>
+        <dd>あなたの現在のランク（プロフィール画面の「Rank ◯◯」の数字）。1〜424 の範囲で入力（425はキャップのため目標側のみ指定可）。</dd>
 
         <dt>目標ランク</dt>
         <dd>到達したいランク。現在ランクより大きい値を入力します。下のプリセットボタンからもワンクリック設定できます。</dd>
 
         <dt>1周あたりの獲得RP</dt>
-        <dd>上記★の方法で求めた合計値。<strong class="gold">古戦場期間中とそれ以外で大きく変わる</strong>ため、計算したい時期に合わせて値を入れてください。</dd>
+        <dd>上記★の方法で求めた合計値。</dd>
 
         <dt>1周あたりにかかる時間</dt>
-        <dd>1回の戦闘にかかる時間を「時：分：秒」で入力。マルチ討伐なら募集〜BAN後〜お礼までの目安、ソロなら戦闘開始〜終了までの時間。AP回復やリロードの待ち時間も含めると現実的。</dd>
+        <dd>戦闘開始〜次の戦闘開始までの時間を「時：分：秒」で入力。</dd>
 
         <dt>1日あたりの稼働時間</dt>
         <dd>1日にどれだけプレイするか。30分なら <code>0.5</code>、1時間半なら <code>1.5</code> のように小数で入力。</dd>
@@ -887,7 +954,7 @@ input[type="number"]:focus {
       </div>
       <dl class="guide-list">
         <dt>必要RP</dt>
-        <dd>目標ランクを完了するまでに必要な総ランクポイント。</dd>
+        <dd>目標ランクに到達するまでに必要な総ランクポイント。<br>例えば目標を 220 にすると、ランク 219 を完了して 220 になるまでの値です。</dd>
 
         <dt>必要周回数</dt>
         <dd>同じ周回をあと何回やる必要があるか（切り上げ）。</dd>
@@ -903,21 +970,14 @@ input[type="number"]:focus {
     <section class="card">
       <div class="card-header">
         <span class="badge">④</span>
-        <h2>補足・ヒント</h2>
+        <h2>補足</h2>
       </div>
       <p>
-        <strong class="gold">「目標ランク」は完了する意味で計算されます。</strong>
-        例えば目標を 220 にすると、ランク 220 を完了して 221 に到達するまでの周回数を表示します
-        （元スプレッドシートと同じ仕様）。
+        ランクキャップは <strong class="gold">425</strong> です。現在ランクは 424 まで、目標ランクは 425 まで指定できます。
       </p>
       <p>
-        ランクキャップ（425）を目標にした場合のみ、425に到達した時点の数値を表示します。
+        計算結果はあくまで目安です。実際の周回時間や獲得RPは状況により変動します。
       </p>
-      <div class="tip-box">
-        <strong>ヒント:</strong>
-        古戦場期間外でも<strong>+999RPカード</strong>などのアイテムを使うと1周あたりのRPが大きく増えます。
-        その場合は「1周あたりの獲得RP」の値を上書きして再計算しましょう。
-      </div>
     </section>
 
   </div>
@@ -980,8 +1040,8 @@ function calculate() {
   const hpd = parseFloat($('hoursPerDay').value);
 
   // Validate
-  if (!Number.isFinite(cur) || !Number.isFinite(tgt) || cur < 1 || tgt < 1 || cur > 425 || tgt > 425) {
-    setAlert('現在ランクと目標ランクは 1〜425 の範囲で入力してください。');
+  if (!Number.isFinite(cur) || !Number.isFinite(tgt) || cur < 1 || tgt < 1 || cur > 424 || tgt > 425) {
+    setAlert('現在ランクは 1〜424、目標ランクは 1〜425 の範囲で入力してください。');
     clearResults();
     return;
   }
@@ -1008,10 +1068,10 @@ function calculate() {
   }
   setAlert('');
 
-  // Formula matches the source spreadsheet:
-  //   needed RP = cumulative(target+1) - cumulative(current)
-  // i.e. "complete the target rank" semantics.
-  const needRP = CUM[tgt + 1] - CUM[cur];
+  // Formula: "reach target rank" semantics.
+  //   needed RP = cumulative(target) - cumulative(current)
+  // Reaching rank N means completing rank N-1.
+  const needRP = CUM[tgt] - CUM[cur];
   const runs = Math.ceil(needRP / rp);
   const totalSec = runs * secPerRun;
   const totalHours = totalSec / 3600;
@@ -1019,7 +1079,7 @@ function calculate() {
 
   // Render
   $('resRP').textContent = fmt(needRP);
-  $('resRPSub').textContent = `Rank ${cur} → ${tgt} 完了まで`;
+  $('resRPSub').textContent = `Rank ${cur} → ${tgt} 到達まで`;
 
   $('resRuns').textContent = fmt(runs) + ' 周';
   $('resRunsSub').textContent = `1周あたり ${fmt(rp)} RP`;
