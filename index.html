@@ -334,7 +334,7 @@ input[type="number"]:focus {
 }
 .time-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 .time-input {
@@ -995,15 +995,11 @@ input[type="number"]:focus {
         <label>1周あたりにかかる時間</label>
         <div class="time-row">
           <div class="time-input">
-            <input type="number" id="hPerRun" min="0" step="1" placeholder="0">
-            <span class="unit">時</span>
-          </div>
-          <div class="time-input">
-            <input type="number" id="mPerRun" min="0" max="59" step="1" placeholder="4">
+            <input type="number" id="mPerRun" min="0" step="1" placeholder="例: 4">
             <span class="unit">分</span>
           </div>
           <div class="time-input">
-            <input type="number" id="sPerRun" min="0" max="59" step="1" placeholder="15">
+            <input type="number" id="sPerRun" min="0" max="59" step="1" placeholder="例: 15">
             <span class="unit">秒</span>
           </div>
         </div>
@@ -1017,7 +1013,7 @@ input[type="number"]:focus {
           <span id="swToggleLabel">ストップウォッチで計測する</span>
         </button>
         <div class="stopwatch" id="stopwatchPanel" hidden>
-          <div class="sw-display" id="swDisplay">0:00:00</div>
+          <div class="sw-display" id="swDisplay">00:00</div>
           <div class="sw-actions">
             <button type="button" id="swStartStop" class="sw-btn sw-btn-primary">スタート</button>
             <button type="button" id="swReset" class="sw-btn">リセット</button>
@@ -1245,14 +1241,12 @@ function updateRpTotal() {
 function calculate() {
   const curRaw = $('curRank').value.trim();
   const tgtRaw = $('tgtRank').value.trim();
-  const hRaw   = $('hPerRun').value.trim();
   const mRaw   = $('mPerRun').value.trim();
   const sRaw   = $('sPerRun').value.trim();
   const hpdRaw = $('hoursPerDay').value.trim();
 
   const cur = parseInt(curRaw, 10);
   const tgt = parseInt(tgtRaw, 10);
-  const h   = parseInt(hRaw, 10) || 0;
   const m   = parseInt(mRaw, 10) || 0;
   const s   = parseInt(sRaw, 10) || 0;
   const hpd = parseFloat(hpdRaw);
@@ -1261,7 +1255,7 @@ function calculate() {
   const rp = rpInfo.total;
   const anyRpEntered = rpInfo.baseRaw !== '' || rpInfo.bonusRaw !== '';
 
-  const anyTimeEntered = hRaw !== '' || mRaw !== '' || sRaw !== '';
+  const anyTimeEntered = mRaw !== '' || sRaw !== '';
   const hpdEntered = hpdRaw !== '';
   // 稼働時間は任意。残りが揃った時点で計算する
   const requiredFilled =
@@ -1295,7 +1289,7 @@ function calculate() {
     clearResults();
     return;
   }
-  const secPerRun = h * 3600 + m * 60 + s;
+  const secPerRun = m * 60 + s;
   if (secPerRun <= 0) {
     setAlert('1周あたりにかかる時間を入力してください。');
     clearResults();
@@ -1387,10 +1381,9 @@ function swElapsedMs() {
 function swRender() {
   const ms = swElapsedMs();
   const totalSec = Math.floor(ms / 1000);
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
+  const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
-  $('swDisplay').textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  $('swDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
 
 function swStart() {
@@ -1421,10 +1414,8 @@ function swStop() {
   // Auto-fill time inputs if any meaningful elapsed time
   const totalSec = Math.floor(SW.accumulated / 1000);
   if (totalSec > 0) {
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
+    const m = Math.floor(totalSec / 60);
     const s = totalSec % 60;
-    $('hPerRun').value = String(h);
     $('mPerRun').value = String(m);
     $('sPerRun').value = String(s);
     calculate();
@@ -1493,7 +1484,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('swStartStop').addEventListener('click', swToggleStartStop);
   $('swReset').addEventListener('click', swReset);
 
-  ['curRank','tgtRank','rpBase','rpBonus','hPerRun','mPerRun','sPerRun','hoursPerDay']
+  ['curRank','tgtRank','rpBase','rpBonus','mPerRun','sPerRun','hoursPerDay']
     .forEach(id => $(id).addEventListener('input', calculate));
 
   document.querySelectorAll('.preset-btn').forEach(btn => {
