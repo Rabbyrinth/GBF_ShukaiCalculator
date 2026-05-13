@@ -342,6 +342,103 @@ input[type="number"]:focus {
 }
 .time-input .unit { right: 10px; }
 
+/* Stopwatch */
+.sw-toggle {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px dashed var(--input-border);
+  background: transparent;
+  color: var(--text-sub);
+  cursor: pointer;
+  font-weight: 600;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+.sw-toggle:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  border-style: solid;
+}
+.sw-toggle[aria-expanded="true"] {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  border-style: solid;
+}
+.stopwatch {
+  margin-top: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.07), rgba(212, 160, 23, 0.02));
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+}
+.sw-display {
+  text-align: center;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+  text-shadow: 0 1px 2px rgba(212, 160, 23, 0.15);
+}
+.sw-display.is-running { animation: sw-pulse 1.4s ease-in-out infinite; }
+@keyframes sw-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.62; }
+}
+.sw-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.sw-btn {
+  padding: 8px 22px;
+  border-radius: 9px;
+  border: 1.5px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--text-main);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+  min-width: 90px;
+}
+.sw-btn:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+.sw-btn-primary {
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-soft));
+  border-color: var(--accent-gold);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(212, 160, 23, 0.25);
+}
+[data-theme="dark"] .sw-btn-primary { color: #14274a; }
+.sw-btn-primary:hover { filter: brightness(1.05); color: #fff; }
+[data-theme="dark"] .sw-btn-primary:hover { color: #14274a; }
+.sw-btn-primary.is-running {
+  background: linear-gradient(135deg, #e64949, #f47272);
+  border-color: #c82c2c;
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(220, 53, 69, 0.28);
+}
+[data-theme="dark"] .sw-btn-primary.is-running { color: #fff; }
+.sw-hint {
+  margin: 12px 0 0;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-weight: 500;
+}
+
 /* RP split (base + bonus) */
 .rp-split {
   display: grid;
@@ -910,10 +1007,27 @@ input[type="number"]:focus {
             <span class="unit">秒</span>
           </div>
         </div>
+        <button type="button" class="sw-toggle" id="swToggleBtn" aria-expanded="false" aria-controls="stopwatchPanel">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="13" r="8"></circle>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="9" y1="2" x2="15" y2="2"></line>
+            <line x1="19" y1="5" x2="21" y2="7"></line>
+          </svg>
+          <span id="swToggleLabel">ストップウォッチで計測する</span>
+        </button>
+        <div class="stopwatch" id="stopwatchPanel" hidden>
+          <div class="sw-display" id="swDisplay">0:00:00</div>
+          <div class="sw-actions">
+            <button type="button" id="swStartStop" class="sw-btn sw-btn-primary">スタート</button>
+            <button type="button" id="swReset" class="sw-btn">リセット</button>
+          </div>
+          <p class="sw-hint">ストップした時点の時間が「時：分：秒」に自動入力されます。</p>
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="hoursPerDay">1日あたりの稼働時間 <span class="hint">(小数可)</span></label>
+        <label for="hoursPerDay">1日あたりの稼働時間 <span class="hint">(任意・小数可)</span></label>
         <div class="input-wrapper">
           <input type="number" id="hoursPerDay" min="0.1" max="24" step="0.5" placeholder="例: 3">
           <span class="unit">時間 / 日</span>
@@ -1022,10 +1136,10 @@ input[type="number"]:focus {
         <dd>戦闘終了画面に表示される「Rankポイントの数字」を <strong class="gold">通常獲得RP</strong> に、「（ボーナス +◯◯）」の数字を <strong class="gold">ボーナスRP</strong> に入力。下に表示される「合計」が実際の計算に使われます。</dd>
 
         <dt>1周あたりにかかる時間</dt>
-        <dd>戦闘開始〜次の戦闘開始までの時間を「時：分：秒」で入力。</dd>
+        <dd>戦闘開始〜次の戦闘開始までの時間を「時：分：秒」で入力。<br>「<strong class="gold">ストップウォッチで計測する</strong>」ボタンを押すと内蔵ストップウォッチが開きます。スタート→ストップで時：分：秒に自動入力されます。</dd>
 
-        <dt>1日あたりの稼働時間</dt>
-        <dd>1日にどれだけプレイするか。30分なら <code>0.5</code>、1時間半なら <code>1.5</code> のように小数で入力。</dd>
+        <dt>1日あたりの稼働時間 <span class="hint">(任意)</span></dt>
+        <dd>1日にどれだけプレイするか。30分なら <code>0.5</code>、1時間半なら <code>1.5</code> のように小数で入力。<strong class="gold">空欄でもOK</strong>（その場合は「稼働日数の目安」だけ表示されません）。</dd>
       </dl>
     </section>
 
@@ -1148,12 +1262,13 @@ function calculate() {
   const anyRpEntered = rpInfo.baseRaw !== '' || rpInfo.bonusRaw !== '';
 
   const anyTimeEntered = hRaw !== '' || mRaw !== '' || sRaw !== '';
-  const allFilled =
-    curRaw !== '' && tgtRaw !== '' && anyRpEntered &&
-    anyTimeEntered && hpdRaw !== '';
+  const hpdEntered = hpdRaw !== '';
+  // 稼働時間は任意。残りが揃った時点で計算する
+  const requiredFilled =
+    curRaw !== '' && tgtRaw !== '' && anyRpEntered && anyTimeEntered;
 
-  // If user hasn't filled everything yet, stay quiet (no error, no result)
-  if (!allFilled) {
+  // If user hasn't filled the required fields yet, stay quiet (no error, no result)
+  if (!requiredFilled) {
     setAlert('');
     clearResults();
     return;
@@ -1186,7 +1301,7 @@ function calculate() {
     clearResults();
     return;
   }
-  if (!Number.isFinite(hpd) || hpd <= 0 || hpd > 24) {
+  if (hpdEntered && (!Number.isFinite(hpd) || hpd <= 0 || hpd > 24)) {
     setAlert('1日あたりの稼働時間は 0より大きく24以下で入力してください。');
     clearResults();
     return;
@@ -1200,7 +1315,6 @@ function calculate() {
   const runs = Math.ceil(needRP / rp);
   const totalSec = runs * secPerRun;
   const totalHours = totalSec / 3600;
-  const days = Math.ceil(totalHours / hpd);
 
   // Render
   $('resRP').textContent = fmt(needRP);
@@ -1214,8 +1328,14 @@ function calculate() {
   const totalM = Math.round((totalHours - totalH) * 60);
   $('resTimeSub').textContent = `合計 約 ${fmt(totalH)} 時間 ${totalM} 分`;
 
-  $('resDays').textContent = fmt(days) + ' 日';
-  $('resDaysSub').textContent = `1日 ${hpd} 時間プレイの場合（切り上げ）`;
+  if (hpdEntered) {
+    const days = Math.ceil(totalHours / hpd);
+    $('resDays').textContent = fmt(days) + ' 日';
+    $('resDaysSub').textContent = `1日 ${hpd} 時間プレイの場合（切り上げ）`;
+  } else {
+    $('resDays').textContent = '―';
+    $('resDaysSub').textContent = '「1日あたりの稼働時間」を入力すると算出されます';
+  }
 }
 
 // Theme handling
@@ -1253,6 +1373,96 @@ function initTheme() {
   }
 }
 
+// ========== Stopwatch ==========
+const SW = {
+  startedAt: null,    // performance.now() when current run started (null when paused)
+  accumulated: 0,     // accumulated ms when paused
+  interval: null
+};
+
+function swElapsedMs() {
+  return SW.accumulated + (SW.startedAt !== null ? performance.now() - SW.startedAt : 0);
+}
+
+function swRender() {
+  const ms = swElapsedMs();
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  $('swDisplay').textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function swStart() {
+  SW.startedAt = performance.now();
+  if (SW.interval) clearInterval(SW.interval);
+  SW.interval = setInterval(swRender, 100);
+  const btn = $('swStartStop');
+  btn.textContent = 'ストップ';
+  btn.classList.add('is-running');
+  $('swDisplay').classList.add('is-running');
+}
+
+function swStop() {
+  if (SW.startedAt !== null) {
+    SW.accumulated += performance.now() - SW.startedAt;
+    SW.startedAt = null;
+  }
+  if (SW.interval) {
+    clearInterval(SW.interval);
+    SW.interval = null;
+  }
+  const btn = $('swStartStop');
+  btn.textContent = 'スタート';
+  btn.classList.remove('is-running');
+  $('swDisplay').classList.remove('is-running');
+  swRender();
+
+  // Auto-fill time inputs if any meaningful elapsed time
+  const totalSec = Math.floor(SW.accumulated / 1000);
+  if (totalSec > 0) {
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = totalSec % 60;
+    $('hPerRun').value = String(h);
+    $('mPerRun').value = String(m);
+    $('sPerRun').value = String(s);
+    calculate();
+  }
+}
+
+function swReset() {
+  SW.startedAt = null;
+  SW.accumulated = 0;
+  if (SW.interval) {
+    clearInterval(SW.interval);
+    SW.interval = null;
+  }
+  const btn = $('swStartStop');
+  btn.textContent = 'スタート';
+  btn.classList.remove('is-running');
+  $('swDisplay').classList.remove('is-running');
+  swRender();
+}
+
+function swToggleStartStop() {
+  if (SW.startedAt !== null) {
+    swStop();
+  } else {
+    swStart();
+  }
+}
+
+function swTogglePanel() {
+  const panel = $('stopwatchPanel');
+  const btn = $('swToggleBtn');
+  const label = $('swToggleLabel');
+  const willOpen = panel.hidden;
+  panel.hidden = !willOpen;
+  btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  label.textContent = willOpen ? '閉じる' : 'ストップウォッチで計測する';
+}
+
 // Tab switching
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => {
@@ -1277,6 +1487,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.tab').forEach(t => {
     t.addEventListener('click', () => switchTab(t.dataset.tab));
   });
+
+  // Stopwatch wiring
+  $('swToggleBtn').addEventListener('click', swTogglePanel);
+  $('swStartStop').addEventListener('click', swToggleStartStop);
+  $('swReset').addEventListener('click', swReset);
 
   ['curRank','tgtRank','rpBase','rpBonus','hPerRun','mPerRun','sPerRun','hoursPerDay']
     .forEach(id => $(id).addEventListener('input', calculate));
