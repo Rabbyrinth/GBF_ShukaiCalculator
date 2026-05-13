@@ -342,6 +342,63 @@ input[type="number"]:focus {
 }
 .time-input .unit { right: 10px; }
 
+/* RP split (base + bonus) */
+.rp-split {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: end;
+}
+.rp-split-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.rp-split-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.rp-split-plus {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--accent-gold);
+  padding-bottom: 12px;
+  user-select: none;
+}
+.rp-split .input-wrapper { width: 100%; }
+.rp-sum-display {
+  margin-top: 10px;
+  padding: 8px 14px;
+  background: rgba(212, 160, 23, 0.07);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--text-sub);
+  text-align: right;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.rp-sum-display .rp-sum-value {
+  font-weight: 800;
+  color: var(--accent-gold);
+  font-variant-numeric: tabular-nums;
+  font-size: 1rem;
+  margin: 0 4px 0 8px;
+}
+.rp-sum-display .rp-sum-unit {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+@media (max-width: 380px) {
+  .rp-split {
+    grid-template-columns: 1fr;
+  }
+  .rp-split-plus { display: none; }
+}
+
 /* Result */
 .result-grid {
   display: grid;
@@ -814,10 +871,26 @@ input[type="number"]:focus {
       </div>
 
       <div class="form-group">
-        <label for="rpPerRun">1周あたりの獲得RP</label>
-        <div class="input-wrapper">
-          <input type="number" id="rpPerRun" min="1" step="1" placeholder="例: 134610">
-          <span class="unit">RP</span>
+        <label>1周あたりの獲得RP <span class="hint">(通常＋ボーナス)</span></label>
+        <div class="rp-split">
+          <div class="rp-split-cell">
+            <span class="rp-split-label">通常獲得RP</span>
+            <div class="input-wrapper">
+              <input type="number" id="rpBase" min="0" step="1" placeholder="例: 19230">
+              <span class="unit">RP</span>
+            </div>
+          </div>
+          <span class="rp-split-plus" aria-hidden="true">+</span>
+          <div class="rp-split-cell">
+            <span class="rp-split-label">ボーナスRP</span>
+            <div class="input-wrapper">
+              <input type="number" id="rpBonus" min="0" step="1" placeholder="例: 115380">
+              <span class="unit">RP</span>
+            </div>
+          </div>
+        </div>
+        <div class="rp-sum-display">
+          合計: <span class="rp-sum-value" id="rpTotal">―</span><span class="rp-sum-unit">RP</span>
         </div>
       </div>
 
@@ -907,8 +980,9 @@ input[type="number"]:focus {
         <h2>「1周あたりの獲得RP」の入力の仕方</h2>
       </div>
       <p>
-        戦闘終了時に表示される <strong class="gold">「+◯◯ポイント」と「ボーナス +◯◯」</strong> の
-        <strong class="gold">すべての数字を足した値</strong> を入力してください。
+        戦闘終了時に表示される <strong class="gold">Rankポイントの数字</strong> と
+        <strong class="gold">（ボーナス +◯◯）の数字</strong> を、それぞれの入力欄に入れてください。
+        計算機側で <strong class="gold">自動で合計</strong> します。
       </p>
 
       <figure class="rp-figure">
@@ -929,7 +1003,7 @@ input[type="number"]:focus {
           </div>
         </div>
       </figure>
-      <p class="mock-arrow-note">↑ <span class="gold-text">Rankポイントの数字</span> と <span class="gold-text">（ボーナス）の数字</span> を足した合計を入力</p>
+      <p class="mock-arrow-note">↑ <span class="gold-text">Rankポイントの数字</span> を「通常獲得RP」、<span class="gold-text">（ボーナス）の数字</span> を「ボーナスRP」にそれぞれ入力</p>
     </section>
 
     <section class="card">
@@ -944,8 +1018,8 @@ input[type="number"]:focus {
         <dt>目標ランク</dt>
         <dd>到達したいランク。現在ランクより大きい値を入力します。下のプリセットボタンからもワンクリック設定できます。</dd>
 
-        <dt>1周あたりの獲得RP</dt>
-        <dd>上記★の方法で求めた合計値。</dd>
+        <dt>1周あたりの獲得RP（通常 ＋ ボーナス）</dt>
+        <dd>戦闘終了画面に表示される「Rankポイントの数字」を <strong class="gold">通常獲得RP</strong> に、「（ボーナス +◯◯）」の数字を <strong class="gold">ボーナスRP</strong> に入力。下に表示される「合計」が実際の計算に使われます。</dd>
 
         <dt>1周あたりにかかる時間</dt>
         <dd>戦闘開始〜次の戦闘開始までの時間を「時：分：秒」で入力。</dd>
@@ -1038,10 +1112,25 @@ function clearResults() {
   $('resDaysSub').textContent = '';
 }
 
+function updateRpTotal() {
+  const baseRaw = $('rpBase').value.trim();
+  const bonusRaw = $('rpBonus').value.trim();
+  const base = parseInt(baseRaw, 10);
+  const bonus = parseInt(bonusRaw, 10);
+  const total =
+    (Number.isFinite(base) ? base : 0) +
+    (Number.isFinite(bonus) ? bonus : 0);
+  if (baseRaw === '' && bonusRaw === '') {
+    $('rpTotal').textContent = '―';
+  } else {
+    $('rpTotal').textContent = fmt(total);
+  }
+  return { base, bonus, total, baseRaw, bonusRaw };
+}
+
 function calculate() {
   const curRaw = $('curRank').value.trim();
   const tgtRaw = $('tgtRank').value.trim();
-  const rpRaw  = $('rpPerRun').value.trim();
   const hRaw   = $('hPerRun').value.trim();
   const mRaw   = $('mPerRun').value.trim();
   const sRaw   = $('sPerRun').value.trim();
@@ -1049,15 +1138,18 @@ function calculate() {
 
   const cur = parseInt(curRaw, 10);
   const tgt = parseInt(tgtRaw, 10);
-  const rp  = parseInt(rpRaw, 10);
   const h   = parseInt(hRaw, 10) || 0;
   const m   = parseInt(mRaw, 10) || 0;
   const s   = parseInt(sRaw, 10) || 0;
   const hpd = parseFloat(hpdRaw);
 
+  const rpInfo = updateRpTotal();
+  const rp = rpInfo.total;
+  const anyRpEntered = rpInfo.baseRaw !== '' || rpInfo.bonusRaw !== '';
+
   const anyTimeEntered = hRaw !== '' || mRaw !== '' || sRaw !== '';
   const allFilled =
-    curRaw !== '' && tgtRaw !== '' && rpRaw !== '' &&
+    curRaw !== '' && tgtRaw !== '' && anyRpEntered &&
     anyTimeEntered && hpdRaw !== '';
 
   // If user hasn't filled everything yet, stay quiet (no error, no result)
@@ -1186,7 +1278,7 @@ document.addEventListener('DOMContentLoaded', () => {
     t.addEventListener('click', () => switchTab(t.dataset.tab));
   });
 
-  ['curRank','tgtRank','rpPerRun','hPerRun','mPerRun','sPerRun','hoursPerDay']
+  ['curRank','tgtRank','rpBase','rpBonus','hPerRun','mPerRun','sPerRun','hoursPerDay']
     .forEach(id => $(id).addEventListener('input', calculate));
 
   document.querySelectorAll('.preset-btn').forEach(btn => {
