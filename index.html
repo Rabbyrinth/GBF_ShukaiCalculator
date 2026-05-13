@@ -540,15 +540,17 @@ input[type="number"]:focus {
 .rp-figure {
   margin: 18px 0 8px;
   padding: 0;
+  text-align: center;
 }
 .rp-figure .rp-screenshot {
   display: block;
-  max-width: 100%;
-  width: 100%;
+  width: 30%;
+  max-width: 30%;
   height: auto;
-  border-radius: 12px;
+  margin: 0 auto;
+  border-radius: 8px;
   border: 1px solid var(--card-border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
 }
 .rp-figure .rp-figure-fallback {
   display: none;
@@ -558,6 +560,12 @@ input[type="number"]:focus {
 }
 .rp-figure.no-image .rp-figure-fallback {
   display: block;
+}
+@media (max-width: 540px) {
+  .rp-figure .rp-screenshot {
+    width: 45%;
+    max-width: 45%;
+  }
 }
 .rp-figure-fallback-note {
   margin: 0 0 8px;
@@ -785,14 +793,14 @@ input[type="number"]:focus {
       <div class="form-group">
         <label for="curRank">現在ランク <span class="hint">(1〜424)</span></label>
         <div class="input-wrapper">
-          <input type="number" id="curRank" min="1" max="424" step="1" value="194">
+          <input type="number" id="curRank" min="1" max="424" step="1" placeholder="例: 194">
         </div>
       </div>
 
       <div class="form-group">
         <label for="tgtRank">目標ランク <span class="hint">(現在 〜 425)</span></label>
         <div class="input-wrapper">
-          <input type="number" id="tgtRank" min="1" max="425" step="1" value="220">
+          <input type="number" id="tgtRank" min="1" max="425" step="1" placeholder="例: 220">
         </div>
         <div class="presets">
           <button class="preset-btn" data-target="150">→ 150</button>
@@ -808,7 +816,7 @@ input[type="number"]:focus {
       <div class="form-group">
         <label for="rpPerRun">1周あたりの獲得RP</label>
         <div class="input-wrapper">
-          <input type="number" id="rpPerRun" min="1" step="1" value="134610">
+          <input type="number" id="rpPerRun" min="1" step="1" placeholder="例: 134610">
           <span class="unit">RP</span>
         </div>
       </div>
@@ -817,15 +825,15 @@ input[type="number"]:focus {
         <label>1周あたりにかかる時間</label>
         <div class="time-row">
           <div class="time-input">
-            <input type="number" id="hPerRun" min="0" step="1" value="0">
+            <input type="number" id="hPerRun" min="0" step="1" placeholder="0">
             <span class="unit">時</span>
           </div>
           <div class="time-input">
-            <input type="number" id="mPerRun" min="0" max="59" step="1" value="4">
+            <input type="number" id="mPerRun" min="0" max="59" step="1" placeholder="4">
             <span class="unit">分</span>
           </div>
           <div class="time-input">
-            <input type="number" id="sPerRun" min="0" max="59" step="1" value="15">
+            <input type="number" id="sPerRun" min="0" max="59" step="1" placeholder="15">
             <span class="unit">秒</span>
           </div>
         </div>
@@ -834,7 +842,7 @@ input[type="number"]:focus {
       <div class="form-group">
         <label for="hoursPerDay">1日あたりの稼働時間 <span class="hint">(小数可)</span></label>
         <div class="input-wrapper">
-          <input type="number" id="hoursPerDay" min="0.1" max="24" step="0.5" value="3">
+          <input type="number" id="hoursPerDay" min="0.1" max="24" step="0.5" placeholder="例: 3">
           <span class="unit">時間 / 日</span>
         </div>
       </div>
@@ -1031,17 +1039,42 @@ function clearResults() {
 }
 
 function calculate() {
-  const cur = parseInt($('curRank').value, 10);
-  const tgt = parseInt($('tgtRank').value, 10);
-  const rp = parseInt($('rpPerRun').value, 10);
-  const h = parseInt($('hPerRun').value, 10) || 0;
-  const m = parseInt($('mPerRun').value, 10) || 0;
-  const s = parseInt($('sPerRun').value, 10) || 0;
-  const hpd = parseFloat($('hoursPerDay').value);
+  const curRaw = $('curRank').value.trim();
+  const tgtRaw = $('tgtRank').value.trim();
+  const rpRaw  = $('rpPerRun').value.trim();
+  const hRaw   = $('hPerRun').value.trim();
+  const mRaw   = $('mPerRun').value.trim();
+  const sRaw   = $('sPerRun').value.trim();
+  const hpdRaw = $('hoursPerDay').value.trim();
 
-  // Validate
-  if (!Number.isFinite(cur) || !Number.isFinite(tgt) || cur < 1 || tgt < 1 || cur > 424 || tgt > 425) {
-    setAlert('現在ランクは 1〜424、目標ランクは 1〜425 の範囲で入力してください。');
+  const cur = parseInt(curRaw, 10);
+  const tgt = parseInt(tgtRaw, 10);
+  const rp  = parseInt(rpRaw, 10);
+  const h   = parseInt(hRaw, 10) || 0;
+  const m   = parseInt(mRaw, 10) || 0;
+  const s   = parseInt(sRaw, 10) || 0;
+  const hpd = parseFloat(hpdRaw);
+
+  const anyTimeEntered = hRaw !== '' || mRaw !== '' || sRaw !== '';
+  const allFilled =
+    curRaw !== '' && tgtRaw !== '' && rpRaw !== '' &&
+    anyTimeEntered && hpdRaw !== '';
+
+  // If user hasn't filled everything yet, stay quiet (no error, no result)
+  if (!allFilled) {
+    setAlert('');
+    clearResults();
+    return;
+  }
+
+  // Validate (only after the user has typed in every required field)
+  if (!Number.isFinite(cur) || cur < 1 || cur > 424) {
+    setAlert('現在ランクは 1〜424 の範囲で入力してください。');
+    clearResults();
+    return;
+  }
+  if (!Number.isFinite(tgt) || tgt < 1 || tgt > 425) {
+    setAlert('目標ランクは 1〜425 の範囲で入力してください。');
     clearResults();
     return;
   }
