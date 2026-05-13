@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>簡易版RP周回計算機 | Granblue Fantasy</title>
+<meta name="description" content="グラブル（Granblue Fantasy）のランクポイント周回計算機。必要周回数・時間・稼働日数を一発で算出します。">
+<style>
+:root {
+  --bg-grad-1: #87ceeb;
+  --bg-grad-2: #c8e7f7;
+  --bg-grad-3: #f4faff;
+  --card-bg: rgba(255, 255, 255, 0.78);
+  --card-border: rgba(255, 255, 255, 0.9);
+  --card-shadow: 0 10px 40px rgba(30, 80, 160, 0.15), 0 2px 8px rgba(30, 80, 160, 0.08);
+  --text-main: #14274a;
+  --text-sub: #4a5b7d;
+  --text-muted: #7d8aa3;
+  --accent-gold: #d4a017;
+  --accent-gold-soft: #f0d97a;
+  --accent-blue: #2563eb;
+  --accent-blue-soft: #93c5fd;
+  --input-bg: rgba(255, 255, 255, 0.85);
+  --input-border: #cbd5e1;
+  --input-border-focus: #d4a017;
+  --result-bg: linear-gradient(135deg, rgba(255, 248, 220, 0.9), rgba(255, 255, 255, 0.85));
+  --result-highlight: #b8860b;
+  --highlight-bg: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(254, 243, 199, 0.85));
+  --highlight-text: #1e3a5f;
+  --highlight-border: rgba(240, 217, 122, 0.7);
+  --divider: rgba(20, 39, 74, 0.1);
+  --label-bg: rgba(255, 255, 255, 0.55);
+  --cloud-color: rgba(255, 255, 255, 0.85);
+  --star-color: transparent;
+}
+
+[data-theme="dark"] {
+  --bg-grad-1: #050b1f;
+  --bg-grad-2: #0d1840;
+  --bg-grad-3: #142253;
+  --card-bg: rgba(20, 30, 65, 0.65);
+  --card-border: rgba(212, 160, 23, 0.25);
+  --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 160, 23, 0.08);
+  --text-main: #e8eef9;
+  --text-sub: #b8c5dc;
+  --text-muted: #7a89a8;
+  --accent-gold: #f4cd5c;
+  --accent-gold-soft: #ffe89c;
+  --accent-blue: #7ab4ff;
+  --accent-blue-soft: #4a7dc7;
+  --input-bg: rgba(15, 25, 50, 0.8);
+  --input-border: #3a4870;
+  --input-border-focus: #f4cd5c;
+  --result-bg: linear-gradient(135deg, rgba(40, 50, 90, 0.85), rgba(20, 30, 65, 0.85));
+  --result-highlight: #ffe89c;
+  --highlight-bg: linear-gradient(135deg, rgba(212, 160, 23, 0.22), rgba(212, 160, 23, 0.08));
+  --highlight-text: #ffe89c;
+  --highlight-border: #f4cd5c;
+  --divider: rgba(255, 255, 255, 0.1);
+  --label-bg: rgba(15, 25, 50, 0.55);
+  --cloud-color: transparent;
+  --star-color: rgba(255, 255, 255, 0.7);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+  color: var(--text-main);
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top, var(--bg-grad-3) 0%, var(--bg-grad-2) 40%, var(--bg-grad-1) 100%);
+  background-attachment: fixed;
+  transition: background 0.6s ease, color 0.4s ease;
+  overflow-x: hidden;
+}
+
+/* Floating sky decorations */
+.sky-decor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+.cloud {
+  position: absolute;
+  background: var(--cloud-color);
+  border-radius: 100px;
+  opacity: 0.85;
+  filter: blur(0.5px);
+  transition: background 0.6s ease, opacity 0.6s ease;
+  box-shadow: 0 8px 30px rgba(255, 255, 255, 0.15);
+}
+.cloud::before, .cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+.cloud-1 { width: 180px; height: 50px; top: 8%; left: -10%; animation: drift 80s linear infinite; }
+.cloud-1::before { width: 90px; height: 90px; top: -45px; left: 25px; }
+.cloud-1::after { width: 70px; height: 70px; top: -30px; right: 30px; }
+.cloud-2 { width: 240px; height: 60px; top: 35%; left: -15%; animation: drift 110s linear infinite; animation-delay: -30s; }
+.cloud-2::before { width: 110px; height: 110px; top: -55px; left: 35px; }
+.cloud-2::after { width: 90px; height: 90px; top: -40px; right: 40px; }
+.cloud-3 { width: 160px; height: 45px; top: 65%; left: -10%; animation: drift 95s linear infinite; animation-delay: -60s; }
+.cloud-3::before { width: 75px; height: 75px; top: -38px; left: 20px; }
+.cloud-3::after { width: 60px; height: 60px; top: -28px; right: 25px; }
+.cloud-4 { width: 200px; height: 55px; top: 85%; left: -12%; animation: drift 120s linear infinite; animation-delay: -45s; }
+.cloud-4::before { width: 95px; height: 95px; top: -47px; left: 28px; }
+.cloud-4::after { width: 75px; height: 75px; top: -33px; right: 32px; }
+
+@keyframes drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(120vw); }
+}
+
+/* Stars for dark mode */
+.stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 8% 12%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 24% 28%, var(--star-color) 50%, transparent),
+    radial-gradient(1.5px 1.5px at 38% 8%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 52% 22%, var(--star-color) 50%, transparent),
+    radial-gradient(2px 2px at 65% 14%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 78% 30%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 88% 6%, var(--star-color) 50%, transparent),
+    radial-gradient(1.5px 1.5px at 12% 48%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 30% 64%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 48% 78%, var(--star-color) 50%, transparent),
+    radial-gradient(2px 2px at 64% 56%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 82% 72%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 96% 88%, var(--star-color) 50%, transparent),
+    radial-gradient(1.5px 1.5px at 18% 88%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 44% 92%, var(--star-color) 50%, transparent),
+    radial-gradient(1px 1px at 72% 96%, var(--star-color) 50%, transparent);
+  animation: twinkle 6s ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+/* Layout */
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 240px;
+}
+.logo-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgba(212, 160, 23, 0.4));
+}
+.title-block h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(120deg, var(--accent-gold), var(--accent-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.title-block .sub {
+  margin: 2px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-sub);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
+  box-shadow: var(--card-shadow);
+}
+.theme-toggle:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-gold);
+}
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Grid layout */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* Card */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.05), transparent 60%);
+  pointer-events: none;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.card-header .badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-soft));
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(212, 160, 23, 0.35);
+}
+.card-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Form */
+.form-group { margin-bottom: 18px; position: relative; }
+.form-group:last-child { margin-bottom: 0; }
+.form-group label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text-sub);
+  letter-spacing: 0.3px;
+}
+.form-group .hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-left: 6px;
+  font-weight: 400;
+}
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+input[type="number"] {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  border: 1.5px solid var(--input-border);
+  border-radius: 12px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  transition: all 0.2s ease;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"]:focus {
+  outline: none;
+  border-color: var(--input-border-focus);
+  box-shadow: 0 0 0 4px rgba(212, 160, 23, 0.12);
+}
+.unit {
+  position: absolute;
+  right: 14px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  font-weight: 500;
+}
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.time-input {
+  position: relative;
+}
+.time-input .unit { right: 10px; }
+
+/* Result */
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.result-item {
+  background: var(--result-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  position: relative;
+  overflow: hidden;
+}
+.result-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent-gold), var(--accent-gold-soft));
+}
+.result-item .label {
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+.result-item .value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--result-highlight);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+.result-item .sub-value {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  font-weight: 500;
+}
+.result-item.highlight {
+  background: var(--highlight-bg);
+  border: 1.5px solid var(--highlight-border);
+  box-shadow: 0 2px 12px rgba(212, 160, 23, 0.1);
+}
+.result-item.highlight::before {
+  background: linear-gradient(180deg, var(--accent-gold), var(--accent-gold-soft));
+  width: 5px;
+}
+.result-item.highlight .value {
+  font-size: 2rem;
+  color: var(--highlight-text);
+}
+
+[data-theme="dark"] .result-item.highlight {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.alert {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  background: rgba(220, 53, 69, 0.08);
+  color: #c53030;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  display: none;
+}
+.alert.show { display: block; }
+
+[data-theme="dark"] .alert {
+  background: rgba(255, 100, 100, 0.12);
+  color: #ffb4b4;
+  border-color: rgba(255, 100, 100, 0.3);
+}
+
+/* Footer note */
+.footer {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  position: relative;
+  z-index: 1;
+}
+.footer a {
+  color: var(--accent-gold);
+  text-decoration: none;
+  font-weight: 600;
+}
+.footer a:hover { text-decoration: underline; }
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 22px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 6px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--card-shadow);
+  position: relative;
+  z-index: 1;
+}
+.tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-sub);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  letter-spacing: 0.5px;
+}
+.tab:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.35);
+}
+[data-theme="dark"] .tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.tab.active {
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-soft));
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(212, 160, 23, 0.3);
+}
+[data-theme="dark"] .tab.active {
+  color: #14274a;
+}
+.tab-pane[hidden] { display: none; }
+
+/* Guide */
+.guide-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.guide-stack p {
+  margin: 0 0 12px;
+  line-height: 1.75;
+  color: var(--text-main);
+  font-size: 0.93rem;
+}
+.guide-stack p:last-child { margin-bottom: 0; }
+.guide-stack .lead {
+  font-size: 0.95rem;
+  color: var(--text-sub);
+}
+.guide-stack strong.gold {
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+.guide-list {
+  margin: 0;
+  padding: 0;
+}
+.guide-list dt {
+  font-weight: 700;
+  color: var(--text-main);
+  font-size: 0.92rem;
+  margin-top: 14px;
+  padding-left: 12px;
+  border-left: 3px solid var(--accent-gold);
+  line-height: 1.4;
+}
+.guide-list dt:first-child { margin-top: 0; }
+.guide-list dd {
+  margin: 6px 0 0 15px;
+  color: var(--text-sub);
+  line-height: 1.7;
+  font-size: 0.88rem;
+}
+.guide-list dd code {
+  background: rgba(212, 160, 23, 0.12);
+  color: var(--accent-gold);
+  padding: 1px 7px;
+  border-radius: 5px;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+/* Mock battle result display */
+.mock-result {
+  margin: 18px 0 8px;
+  padding: 18px 22px;
+  background: linear-gradient(135deg, #0d1b3d, #1a2b5a);
+  border: 1px solid rgba(212, 160, 23, 0.55);
+  border-radius: 12px;
+  color: #f4e9c8;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+.mock-result .mock-title {
+  font-size: 0.75rem;
+  letter-spacing: 2px;
+  color: #ffe89c;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+.mock-result .mock-row {
+  font-size: 0.98rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.mock-result .mock-row .label-jp {
+  color: rgba(244, 233, 200, 0.85);
+  font-weight: 500;
+}
+.mock-result .mock-row .num {
+  color: #f4e9c8;
+  font-weight: 700;
+}
+.mock-result .mock-row.bonus .label-jp {
+  color: rgba(255, 232, 156, 0.8);
+  font-size: 0.88rem;
+  padding-left: 14px;
+}
+.mock-result .mock-row.bonus .num {
+  color: #ffe89c;
+}
+.mock-result .mock-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 232, 156, 0.4), transparent);
+  margin: 12px 0;
+}
+.mock-result .mock-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.98rem;
+}
+.mock-result .mock-total .label-jp {
+  color: #ffe89c;
+  font-weight: 700;
+}
+.mock-result .mock-total .num {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #ffe89c;
+  font-variant-numeric: tabular-nums;
+}
+.mock-arrow-note {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-sub);
+  text-align: center;
+  font-weight: 600;
+}
+.mock-arrow-note .gold-text {
+  color: var(--accent-gold);
+}
+
+.tip-box {
+  margin: 14px 0 0;
+  padding: 12px 16px;
+  background: rgba(212, 160, 23, 0.08);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: 8px;
+  font-size: 0.87rem;
+  color: var(--text-sub);
+  line-height: 1.7;
+}
+.tip-box strong {
+  color: var(--accent-gold);
+}
+
+.guide-stack .card-header h2 .step-suffix {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  margin-left: 8px;
+}
+
+/* Quick presets */
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.preset-btn {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--input-border);
+  background: var(--label-bg);
+  color: var(--text-sub);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.preset-btn:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+</style>
+</head>
+<body>
+
+<div class="sky-decor">
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+  <div class="cloud cloud-4"></div>
+</div>
+<div class="stars"></div>
+
+<div class="app">
+  <header class="header">
+    <div class="header-title">
+      <svg class="logo-icon" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#FFE89C"/>
+            <stop offset="100%" stop-color="#D4A017"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7AB4FF"/>
+            <stop offset="100%" stop-color="#2563EB"/>
+          </linearGradient>
+        </defs>
+        <circle cx="32" cy="32" r="28" fill="url(#g2)" opacity="0.25"/>
+        <path d="M32 8 L40 26 L58 28 L44 40 L48 58 L32 48 L16 58 L20 40 L6 28 L24 26 Z"
+              fill="url(#g1)" stroke="#B8860B" stroke-width="1"/>
+      </svg>
+      <div class="title-block">
+        <h1>簡易版RP周回計算機</h1>
+        <p class="sub">Granblue Fantasy / Rank Point Calculator</p>
+      </div>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="テーマ切替">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </svg>
+      <span id="themeLabel">ダークモード</span>
+    </button>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="ページ切替">
+    <button class="tab active" id="tab-btn-calc" role="tab" aria-selected="true" aria-controls="pane-calc" data-tab="calc">計算機</button>
+    <button class="tab" id="tab-btn-guide" role="tab" aria-selected="false" aria-controls="pane-guide" data-tab="guide">使い方</button>
+  </nav>
+
+  <div id="pane-calc" class="tab-pane" role="tabpanel" aria-labelledby="tab-btn-calc">
+  <div class="layout">
+    <!-- Inputs -->
+    <section class="card" aria-labelledby="inputs-title">
+      <div class="card-header">
+        <span class="badge">入</span>
+        <h2 id="inputs-title">入力</h2>
+      </div>
+
+      <div class="form-group">
+        <label for="curRank">現在ランク <span class="hint">(1〜425)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="curRank" min="1" max="425" step="1" value="194">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="tgtRank">目標ランク <span class="hint">(現在 〜 425)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="tgtRank" min="1" max="425" step="1" value="220">
+        </div>
+        <div class="presets">
+          <button class="preset-btn" data-target="150">→ 150</button>
+          <button class="preset-btn" data-target="200">→ 200</button>
+          <button class="preset-btn" data-target="250">→ 250</button>
+          <button class="preset-btn" data-target="300">→ 300</button>
+          <button class="preset-btn" data-target="350">→ 350</button>
+          <button class="preset-btn" data-target="400">→ 400</button>
+          <button class="preset-btn" data-target="425">→ 425</button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="rpPerRun">1周あたりの獲得RP</label>
+        <div class="input-wrapper">
+          <input type="number" id="rpPerRun" min="1" step="1" value="134610">
+          <span class="unit">RP</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>1周あたりにかかる時間</label>
+        <div class="time-row">
+          <div class="time-input">
+            <input type="number" id="hPerRun" min="0" step="1" value="0">
+            <span class="unit">時</span>
+          </div>
+          <div class="time-input">
+            <input type="number" id="mPerRun" min="0" max="59" step="1" value="4">
+            <span class="unit">分</span>
+          </div>
+          <div class="time-input">
+            <input type="number" id="sPerRun" min="0" max="59" step="1" value="15">
+            <span class="unit">秒</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="hoursPerDay">1日あたりの稼働時間 <span class="hint">(小数可)</span></label>
+        <div class="input-wrapper">
+          <input type="number" id="hoursPerDay" min="0.1" max="24" step="0.5" value="3">
+          <span class="unit">時間 / 日</span>
+        </div>
+      </div>
+
+      <div class="alert" id="alert"></div>
+    </section>
+
+    <!-- Results -->
+    <section class="card" aria-labelledby="results-title">
+      <div class="card-header">
+        <span class="badge">結</span>
+        <h2 id="results-title">計算結果</h2>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-item">
+          <div class="label">必要RP</div>
+          <div class="value" id="resRP">―</div>
+          <div class="sub-value" id="resRPSub"></div>
+        </div>
+        <div class="result-item highlight">
+          <div class="label">必要周回数</div>
+          <div class="value" id="resRuns">―</div>
+          <div class="sub-value" id="resRunsSub"></div>
+        </div>
+        <div class="result-item">
+          <div class="label">必要時間（合計）</div>
+          <div class="value" id="resTime">―</div>
+          <div class="sub-value" id="resTimeSub"></div>
+        </div>
+        <div class="result-item highlight">
+          <div class="label">稼働日数の目安</div>
+          <div class="value" id="resDays">―</div>
+          <div class="sub-value" id="resDaysSub"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+  </div>
+
+  <div id="pane-guide" class="tab-pane guide-stack" role="tabpanel" aria-labelledby="tab-btn-guide" hidden>
+
+    <section class="card">
+      <div class="card-header">
+        <span class="badge">①</span>
+        <h2>このツールについて</h2>
+      </div>
+      <p class="lead">
+        グラブル（Granblue Fantasy）の <strong class="gold">ランクポイント周回計算機</strong> です。<br>
+        現在ランクと目標ランク、1周あたりの獲得RP・所要時間・1日のプレイ時間を入力すると、
+        必要な周回数・時間・<strong class="gold">何日かかるか</strong>を算出します。
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <span class="badge">★</span>
+        <h2>「1周あたりの獲得RP」の数え方<span class="step-suffix">IMPORTANT</span></h2>
+      </div>
+      <p>
+        戦闘終了時に表示される <strong class="gold">「+◯◯ポイント」と「ボーナス +◯◯」</strong> の
+        <strong class="gold">すべての数字を足した値</strong> を入力してください。
+      </p>
+
+      <div class="mock-result" aria-label="戦闘終了画面のイメージ">
+        <div class="mock-title">RANK POINT</div>
+        <div class="mock-row"><span class="label-jp">獲得ランクポイント</span><span class="num">+25,000</span></div>
+        <div class="mock-row bonus"><span class="label-jp">ボーナス</span><span class="num">+5,000</span></div>
+        <div class="mock-row bonus"><span class="label-jp">ボーナス</span><span class="num">+2,000</span></div>
+        <div class="mock-row bonus"><span class="label-jp">ボーナス</span><span class="num">+610</span></div>
+        <div class="mock-divider"></div>
+        <div class="mock-total"><span class="label-jp">合計</span><span class="num">32,610</span></div>
+      </div>
+      <p class="mock-arrow-note">↑ この <span class="gold-text">合計値（32,610）</span> を入力欄に入れる</p>
+
+      <div class="tip-box">
+        <strong>ポイント:</strong>
+        ボーナスは <strong>古戦場期間中の貢献度ボーナス</strong>・<strong>ジョブマスターレベル</strong>・
+        <strong>イベント特効ボーナス</strong> などで複数行に分かれて表示されますが、
+        最終的にRPバーが伸びた量＝そのすべての合計です。漏らさず足してください。
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <span class="badge">②</span>
+        <h2>各入力欄の説明</h2>
+      </div>
+      <dl class="guide-list">
+        <dt>現在ランク</dt>
+        <dd>あなたの現在のランク（プロフィール画面の「Rank ◯◯」の数字）。1〜425の範囲で入力。</dd>
+
+        <dt>目標ランク</dt>
+        <dd>到達したいランク。現在ランクより大きい値を入力します。下のプリセットボタンからもワンクリック設定できます。</dd>
+
+        <dt>1周あたりの獲得RP</dt>
+        <dd>上記★の方法で求めた合計値。<strong class="gold">古戦場期間中とそれ以外で大きく変わる</strong>ため、計算したい時期に合わせて値を入れてください。</dd>
+
+        <dt>1周あたりにかかる時間</dt>
+        <dd>1回の戦闘にかかる時間を「時：分：秒」で入力。マルチ討伐なら募集〜BAN後〜お礼までの目安、ソロなら戦闘開始〜終了までの時間。AP回復やリロードの待ち時間も含めると現実的。</dd>
+
+        <dt>1日あたりの稼働時間</dt>
+        <dd>1日にどれだけプレイするか。30分なら <code>0.5</code>、1時間半なら <code>1.5</code> のように小数で入力。</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <span class="badge">③</span>
+        <h2>計算結果の見方</h2>
+      </div>
+      <dl class="guide-list">
+        <dt>必要RP</dt>
+        <dd>目標ランクを完了するまでに必要な総ランクポイント。</dd>
+
+        <dt>必要周回数</dt>
+        <dd>同じ周回をあと何回やる必要があるか（切り上げ）。</dd>
+
+        <dt>必要時間（合計）</dt>
+        <dd>「周回数 × 1周あたりの時間」の合計。連続でぶっ通しでやった場合の純粋な所要時間。</dd>
+
+        <dt>稼働日数の目安</dt>
+        <dd>「必要時間 ÷ 1日あたりの稼働時間」を切り上げた日数。<strong class="gold">3.4日なら4日</strong>と表示されます。</dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <span class="badge">④</span>
+        <h2>補足・ヒント</h2>
+      </div>
+      <p>
+        <strong class="gold">「目標ランク」は完了する意味で計算されます。</strong>
+        例えば目標を 220 にすると、ランク 220 を完了して 221 に到達するまでの周回数を表示します
+        （元スプレッドシートと同じ仕様）。
+      </p>
+      <p>
+        ランクキャップ（425）を目標にした場合のみ、425に到達した時点の数値を表示します。
+      </p>
+      <div class="tip-box">
+        <strong>ヒント:</strong>
+        古戦場期間外でも<strong>+999RPカード</strong>などのアイテムを使うと1周あたりのRPが大きく増えます。
+        その場合は「1周あたりの獲得RP」の値を上書きして再計算しましょう。
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="footer">
+    <p>計算式は簡易版です。データはランク1〜425に対応しています。<br>
+    ※ 数値はあくまで目安です。実際の周回はAP消費・撃破時間・回線などにより変動します。</p>
+  </footer>
+</div>
+
+<script>
+// ===== Cumulative RP table (index = rank, value = total RP from rank 1 to reach that rank) =====
+// Rank 1 = 0, ranks 1..425 from spreadsheet, index 426 = sentinel (= CUM[425]) so the
+// formula `CUM[target+1] - CUM[current]` works at the rank cap (target=425 returns reach-only).
+const CUM = [0,0,50,200,500,900,1500,2200,2900,3800,4900,6500,8000,9600,11500,13500,15600,17800,20100,22950,26500,30450,34450,38900,43850,49350,55450,62200,69650,77850,86850,96700,107450,119150,131850,145600,160450,176450,193650,212100,231850,252950,275450,299400,324850,351850,380450,410700,442650,476350,511850,549200,588450,629650,672850,718100,765450,814950,866650,920600,976850,1035450,1096450,1159900,1225850,1294350,1365450,1439200,1515650,1594850,1676850,1761700,1849450,1940150,2033850,2130600,2230450,2333450,2439650,2549100,2661850,2777950,2897450,3020400,3146850,3276850,3410450,3547700,3688650,3833350,3981850,4134200,4290450,4450650,4614850,4783100,4955450,5131950,5312650,5497600,5686850,5936850,6196850,6466850,6746850,7038850,7338850,7652850,7976850,8316850,8664850,9024850,9396950,9781350,10177350,10586950,11012450,11448050,11896950,12358950,12833950,13323950,13828050,14346450,14879350,15426950,15989450,16567050,17160050,17768450,18391450,19031450,19687650,20360350,21049850,21756450,22480450,23221450,23981150,24759150,25555750,26371250,27205950,28060150,28934150,29828150,30742550,31677750,32634150,33612150,34612150,35634650,36683150,37755150,38854150,39982150,41140650,42335650,43570650,44850650,46180650,47570650,49030650,50570650,52200650,53930650,55780650,57770650,59920650,62250650,64780650,67530650,70540650,73820650,77370650,81275650,85196650,89136150,93092650,97069150,101067650,105091150,109142650,113227150,117349650,121515150,125733650,130015150,134369650,138807150,143337650,147981150,152757650,157687150,162789650,168085150,173598650,179355150,185379650,191697150,198332650,204968150,211603650,218239150,224874650,231510150,238145650,244781150,251416650,258052150,264687650,271323150,277958650,284594150,291229650,297865150,304500650,311136150,317771650,324407150,331042650,337678150,344313650,350949150,357584650,364220150,370855650,377516290,384202160,390913350,397649950,404412050,411199740,418013110,424852250,431717250,438608200,445525190,452468310,459437650,466433300,473455350,480503890,487579010,494680800,501809350,508964750,516147090,523356460,530592950,537856650,545147650,552438650,559729650,567020650,574311650,581602650,588893650,596184650,603475650,610766650,618057650,625348650,632639650,639930650,647221650,654512650,661803650,669094650,676385650,683676650,690967650,698258650,705549650,712840650,720131650,727422650,734727780,742047130,749380790,756728850,764091400,771468530,778860330,786266890,793688300,801124650,808576030,816042530,823524240,831021250,838533650,846061530,853604980,861164090,868738950,876329650,883936280,891558930,899197690,906852650,914523810,922211260,929944670,937724420,945550890,953424460,961345510,969314420,977331570,985397340,993512110,1001676260,1009890170,1018154220,1026468790,1034834260,1043251010,1051719420,1060239870,1068812740,1077438410,1086117260,1094849670,1103636020,1112476690,1121372060,1130285340,1139216615,1148165970,1157133490,1166119260,1175123365,1184145890,1193186920,1202246540,1211324835,1220421890,1229537790,1238672620,1247826465,1256999410,1266191540,1275402940,1284633695,1293883890,1303153610,1312442940,1321751965,1331080770,1340429440,1349798060,1359186715,1368595490,1378024470,1387473740,1396943385,1406433490,1415944140,1425475420,1435027415,1444600210,1454193890,1463808540,1473444245,1483101090,1492779160,1502478540,1512199315,1521941570,1531705390,1541490860,1551298065,1561127090,1570978020,1580850940,1590745935,1600663090,1610640545,1620678600,1630777555,1640937710,1651159365,1661442820,1671788375,1682196330,1692666985,1703200640,1713797595,1724458150,1735182605,1745971260,1756824415,1767742370,1778725425,1789773880,1800888035,1812068190,1823314645,1834627700,1846007655,1857454810,1868926250,1880422060,1891942325,1903487130,1915056560,1926650700,1938269635,1949913450,1961582230,1973276060,1984995025,1996739210,2008508700,2020303580,2032123935,2043969850,2055841410,2067738700,2079661805,2091610810,2103585800,2115586860,2127614075,2139667530,2139667530];
+// CUM.length === 427 (index 0 unused, ranks 1..425, index 426 = sentinel for rank cap)
+
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString('ja-JP');
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function fmtDuration(totalSeconds) {
+  if (!isFinite(totalSeconds) || totalSeconds < 0) return '―';
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  const pad = n => String(n).padStart(2, '0');
+  return `${h}:${pad(m)}:${pad(s)}`;
+}
+
+function setAlert(msg) {
+  const el = $('alert');
+  if (msg) {
+    el.textContent = msg;
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show');
+  }
+}
+
+function clearResults() {
+  $('resRP').textContent = '―';
+  $('resRPSub').textContent = '';
+  $('resRuns').textContent = '―';
+  $('resRunsSub').textContent = '';
+  $('resTime').textContent = '―';
+  $('resTimeSub').textContent = '';
+  $('resDays').textContent = '―';
+  $('resDaysSub').textContent = '';
+}
+
+function calculate() {
+  const cur = parseInt($('curRank').value, 10);
+  const tgt = parseInt($('tgtRank').value, 10);
+  const rp = parseInt($('rpPerRun').value, 10);
+  const h = parseInt($('hPerRun').value, 10) || 0;
+  const m = parseInt($('mPerRun').value, 10) || 0;
+  const s = parseInt($('sPerRun').value, 10) || 0;
+  const hpd = parseFloat($('hoursPerDay').value);
+
+  // Validate
+  if (!Number.isFinite(cur) || !Number.isFinite(tgt) || cur < 1 || tgt < 1 || cur > 425 || tgt > 425) {
+    setAlert('現在ランクと目標ランクは 1〜425 の範囲で入力してください。');
+    clearResults();
+    return;
+  }
+  if (cur >= tgt) {
+    setAlert('目標ランクは現在ランクより大きい値を入力してください。');
+    clearResults();
+    return;
+  }
+  if (!Number.isFinite(rp) || rp <= 0) {
+    setAlert('1周あたりの獲得RPは 1以上を入力してください。');
+    clearResults();
+    return;
+  }
+  const secPerRun = h * 3600 + m * 60 + s;
+  if (secPerRun <= 0) {
+    setAlert('1周あたりにかかる時間を入力してください。');
+    clearResults();
+    return;
+  }
+  if (!Number.isFinite(hpd) || hpd <= 0 || hpd > 24) {
+    setAlert('1日あたりの稼働時間は 0より大きく24以下で入力してください。');
+    clearResults();
+    return;
+  }
+  setAlert('');
+
+  // Formula matches the source spreadsheet:
+  //   needed RP = cumulative(target+1) - cumulative(current)
+  // i.e. "complete the target rank" semantics.
+  const needRP = CUM[tgt + 1] - CUM[cur];
+  const runs = Math.ceil(needRP / rp);
+  const totalSec = runs * secPerRun;
+  const totalHours = totalSec / 3600;
+  const days = Math.ceil(totalHours / hpd);
+
+  // Render
+  $('resRP').textContent = fmt(needRP);
+  $('resRPSub').textContent = `Rank ${cur} → ${tgt} 完了まで`;
+
+  $('resRuns').textContent = fmt(runs) + ' 周';
+  $('resRunsSub').textContent = `1周あたり ${fmt(rp)} RP`;
+
+  $('resTime').textContent = fmtDuration(totalSec);
+  const totalH = Math.floor(totalHours);
+  const totalM = Math.round((totalHours - totalH) * 60);
+  $('resTimeSub').textContent = `合計 約 ${fmt(totalH)} 時間 ${totalM} 分`;
+
+  $('resDays').textContent = fmt(days) + ' 日';
+  $('resDaysSub').textContent = `1日 ${hpd} 時間プレイの場合（切り上げ）`;
+}
+
+// Theme handling
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  const icon = $('themeIcon');
+  const label = $('themeLabel');
+  if (theme === 'dark') {
+    label.textContent = 'ライトモード';
+    icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+  } else {
+    label.textContent = 'ダークモード';
+    icon.innerHTML = `
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+  }
+  try { localStorage.setItem('rp-calc-theme', theme); } catch (e) {}
+}
+
+function initTheme() {
+  let saved;
+  try { saved = localStorage.getItem('rp-calc-theme'); } catch (e) {}
+  if (saved === 'dark' || saved === 'light') {
+    applyTheme(saved);
+  } else {
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(prefersDark ? 'dark' : 'light');
+  }
+}
+
+// Tab switching
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => {
+    const active = t.dataset.tab === name;
+    t.classList.toggle('active', active);
+    t.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  document.querySelectorAll('.tab-pane').forEach(p => {
+    p.hidden = p.id !== 'pane-' + name;
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Wire up
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  $('themeToggle').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    applyTheme(cur === 'dark' ? 'light' : 'dark');
+  });
+
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => switchTab(t.dataset.tab));
+  });
+
+  ['curRank','tgtRank','rpPerRun','hPerRun','mPerRun','sPerRun','hoursPerDay']
+    .forEach(id => $(id).addEventListener('input', calculate));
+
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $('tgtRank').value = btn.dataset.target;
+      calculate();
+    });
+  });
+
+  calculate();
+});
+</script>
+
+</body>
+</html>
